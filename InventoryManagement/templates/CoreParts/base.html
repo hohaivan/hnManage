@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> {% block title %}  {% endblock %} </title>
+
+    {% include 'CoreParts/First_load.html' %}
+    {% block more_CSS %}
+
+    {% endblock %}
+</head>
+<body class="mini-sidebar">
+    {% include 'CoreParts/NavBar.html' %}
+
+
+    <div class="page-wrapper">
+        {% block content %}
+
+        {% endblock %}
+    </div>
+
+    {% include 'CoreParts/Last_load.html' %}
+    {% block more_scripts %}
+    {% endblock %}
+
+</body>
+</html>

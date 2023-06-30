@@ -1,0 +1,63 @@
+{% extends 'CoreParts/base.html' %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+{% block title %} Bleach-Raw {% endblock %}
+{% block content %}
+{% now 'Y' as current_year %}
+<div class="container">
+    <div class="row mt-1 p-3">
+        <div class="col-md-8 offset-md-2">
+            <p class="border border-5 rounded-pill rounded-5 fs-4 fw-bold p-2 mx-5 text-center text-primary">Thêm: TẨY - BÁN MỘC</p>
+            {% for message in messages %}
+            {% if message %}
+            <hr>
+            <div class="messages rounded-pill rounded-3 p-1 mx-5 alert alert-{{ message.tags }}">
+                <p class = "text-center fs-5">{{ message }}</p>
+            </div>
+            {% endif %}
+            {% endfor %}
+
+
+            <hr>
+            <div class="row border border-my-color border-5">
+                <form class="mt-3" method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-3"> {{ form.Date|as_crispy_field }} </div>
+                        <div class="col-md-9"> {{ form.Note|as_crispy_field }} </div>
+                        <div class="col-md-6"> {{ form.DetTay_ID|as_crispy_field }} </div>
+                        <div class="col-md-6"> {{ form.FromWhere|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.Print_Des|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.BatchNo|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.Customer|as_crispy_field }} </div>
+                        <div class="col-md-6"> {{ form.Qty|as_crispy_field }} </div>
+                        <div class="col-md-6"> {{ form.Weight|as_crispy_field }} </div>
+
+
+                        <div class="col-md-2"> <input class="mb-3 px-5 btn btn-success btn-block" type="submit" value="Lưu"> </div>
+                        <div class="col-md-3 ms-3"> <a class="px-auto btn btn-danger btn-block" href="{% url 'Det_Tay_hn' back_year %}">Quay Lại</a> </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Additional Scripts-->
+<script>
+    document.querySelector('#id_DetTay_ID').setAttribute('data-redirect-url', '{% url 'Tay_Moc_add' pk=0 %}');
+</script>
+<script>
+    document.querySelector('#id_DetTay_ID').addEventListener('change', function() {
+        var redirectUrl = this.getAttribute('data-redirect-url');
+        if (redirectUrl) {
+            var value = this.value;
+            redirectUrl = redirectUrl.replace('0', encodeURIComponent(value));
+            window.location.href = redirectUrl;
+        }
+    });
+</script>
+
+
+{% endblock %}

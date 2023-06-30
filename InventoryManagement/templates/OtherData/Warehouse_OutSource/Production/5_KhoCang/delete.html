@@ -1,0 +1,40 @@
+{% extends 'CoreParts/base.html' %}
+{% load humanize %}
+{% block title %} Xóa: Lò Căng {% endblock %}
+
+{% block content%}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-6 offset-md-3">
+            <div class="border border-5 border-info bg-white p-3">
+                <p class="fs-4 fw-bold">Xóa: Thông Tin Lò Căng</p>
+                <hr>
+                {% for message in messages %}
+                {% if message %}
+                <div class="rounded-pill rounded-3 p-1 mx-5 alert alert-{{ message.tags }}">
+                    <p class="text-center fs-5 close">{{ message }}</p>
+                </div>
+                {% endif %}
+                {% endfor %}
+                <div class="alert alert-danger">
+                    <p class="fs-4">Bạn có chắc muốn xóa dữ liệu này?</p>
+                    <li class="mx-4">Tên Xưởng: {{ row.KhoCang|default:'N/A' }}</li>
+                    <li class="mx-4">Ký Hiệu: {{ row.KyHieu|default:'N/A' }}</li>
+                    <li class="mx-4">Địa Chỉ: {{ row.Address|default:'N/A' }}</li>
+                    <li class="mx-4">Gia Công: {% if row.OS %} Có {% else %} Không {% endif %}</li>
+                    <hr>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form }}
+                    <input class="btn btn-danger" type="submit" value="Đúng, tôi chắc chắn">
+                    <a class="btn btn-secondary mx-3" href="{% url back_link %}">Hủy</a>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

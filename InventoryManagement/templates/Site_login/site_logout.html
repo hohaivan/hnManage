@@ -1,0 +1,49 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {% block title %} <title>You Have Log Out</title> {% endblock %}
+    {% include 'CoreParts/First_load.html' %}
+</head>
+<body>
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-6 offset-md-3">
+            <div class="border bg-white p-3">
+                {% for message in messages %}
+                {% if message %}
+                <div class="rounded-pill rounded-3 p-1 mx-5 alert alert-{{ message.tags }}">
+                    <p class="text-center fs-5">{{ message }}</p>
+                </div>
+                {% endif %}
+                {% endfor %}
+                <div class="alert alert-danger">
+                    <h4 class="p-0 text-success">Bạn Đã Đăng Xuất </h4>
+                    <hr>
+                    <h4 class="p-0 text-success">Bạn Sẽ Chuyển Tới Trang Đăng Nhập</h4>
+                </div>
+                <a class="btn btn-success" href="{% url 'user-login' %}">Đăng Nhập Lại</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+<script>
+    setTimeout(function() {
+        window.location.href = " {% url 'user-login' %} ";
+    }, 1000); // delay for 2 seconds (5000 ms)
+
+</script>
+</body>
+</html>
+
+
+
+

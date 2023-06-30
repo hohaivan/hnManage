@@ -1,0 +1,52 @@
+{% extends 'CoreParts/base.html' %}
+{% load humanize %}
+{% load static %}
+{% block title %} Kho Hàng & Gia Công {% endblock %}
+{% block content %}
+
+<div class="container-fluid">
+    <div class="col-md-12 mx-3 my-2" style="background-color:#256128">
+        <div class="row">
+            <div class="col-md-5 offset-md-3">
+                <h2 class="text-center text-white fw-bold fs-2">KHO HÀNG & GIA CÔNG</h2>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+
+        <div class="col-md-9 offset-md-2 border border-5 border-danger rounded px-3 py-3">
+            <h3 class="fw-bold fst-italic">
+                <ins>Tơ Sợi:</ins>
+            </h3>
+            <div class="offset-md-2 mb-5">
+                <div class="row">
+                    <a class="col-md-3 btn btn-lg btn-primary mt-2 me-3 btn-hover-blue" href="{% url 'WH_YarnVendor' %}"> Nhà Cung Cấp</a>
+                    <a class="col-md-3 btn btn-lg btn-primary mt-2 me-3 btn-hover-blue" href="{% url 'WH_Warehouse' %}"> Nơi Nhận Sợi</a>
+                </div>
+                <div class="row">
+                    <a class="col-md-3 btn btn-lg btn-success mt-2 me-3 btn-hover-red" href="{% url 'WH_YarnType' %}"> Các Loại Sợi</a>
+                </div>
+
+
+            </div>
+            <h3 class="fw-bold fst-italic">
+                <ins>Sản Xuất:</ins>
+            </h3>
+            <div class="offset-md-2 mb-3">
+                <div class="row">
+                    <a class="col-md-3 btn btn-lg btn-primary mt-2 me-3 btn-hover-blue" href="{% url 'WH_KhoDet' %}"> Xưởng Dệt</a>
+                    <a class="col-md-3 btn btn-lg btn-primary mt-2 me-3 btn-hover-blue" href="{% url 'WH_KhoTay' %}"> Lò Tẩy</a>
+                    <a class="col-md-3 btn btn-lg btn-primary mt-2 me-3 btn-hover-blue" href="{% url 'WH_KhoIn' %}"> Lò In</a>
+                    <a class="col-md-3 btn btn-lg btn-primary mt-2 me-3 btn-hover-blue" href="{% url 'WH_KhoNhuom' %}"> Lò Nhuộm</a>
+                    <a class="col-md-3 btn btn-lg btn-primary mt-2 me-3 btn-hover-blue" href="{% url 'WH_KhoCang' %}"> Lò Căng</a>
+                </div>
+                <div class="row">
+                    <a class="col-md-3 btn btn-lg btn-success mt-2 me-3 btn-hover-red" href="{% url 'WH_ProductType' %}"> Phân Loại Hàng</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

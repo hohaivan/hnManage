@@ -1,0 +1,25 @@
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.border-my-color {
+  border-color: #ff0000; /* Replace with your custom color */
+}
+
+.sticky-row {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.btn-hover-blue:hover {
+  color: #223bc9;
+  font-weight: bold;
+}
+
+.btn-hover-red:hover {
+  color: #f76539;
+  font-weight: bold;
+}

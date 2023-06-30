@@ -1,0 +1,58 @@
+{% extends 'CoreParts/base.html' %}
+{% load humanize %}
+{% block title %} Xóa: Bán Hàng {% endblock %}
+
+{% block content%}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-6 offset-md-3">
+            <div class="border border-5 border-info bg-white p-3">
+                <p class="fs-4 fw-bold">Xóa: Bán Hàng</p>
+                <hr>
+                {% for message in messages %}
+                {% if message %}
+                <div class="rounded-pill rounded-3 p-1 mx-5 alert alert-{{ message.tags }}">
+                    <p class="text-center fs-5">{{ message }}</p>
+                </div>
+                {% endif %}
+                {% endfor %}
+                <div class="alert alert-danger">
+                    <p class="fs-4">Bạn có chắc muốn xóa dữ liệu này?</p>
+                    <li class="mx-4">Phiếu Xuất Kho: {{ row.PXK }}</li>
+                    <li class="mx-4">Ngày: {{ row.Date|date:'d-m-Y' }}</li>
+                    <li class="mx-4">Khách Hàng: {{ row.Customer }}</li>
+                    <li class="mx-4">Tên Hàng: {{ row.Product_Name }} - Loại Hàng: {{ row.Product_Type }}</li>
+                    <li class="mx-4">Thành Phẩm: {{ row.get_Final_Product_display }}</li>
+                    {% if row.Final_Product == 'N' %}
+                    <li class="mx-4">Mã Màu: {{ row.Colours_display }}</li>
+                    {% elif row.Final_Product == 'I' %}
+                    <li class="mx-4">Mã Màu: {{ row.Patterns_display }}</li>
+                    {% else %}
+                    {% endif %}
+                    <li class="mx-4">Số Lượng: {{ row.Qty }} Cây</li>
+                    <li class="mx-4">Khối Lượng: {{ row.Weight.normalize|intcomma }} kg</li>
+                    <li class="mx-4">Trừ Đầu Cây: {{ row.Cut.normalize|intcomma }} kg</li>
+                    <li class="mx-4">KL Bán: {{ row.Net_Weight.normalize|intcomma }} kg</li>
+                    <li class="mx-4">Giá Bán: {{ row.Price|intcomma }} VNĐ</li>
+                    <li class="mx-4">Thành Tiền: {{ row.Amount.normalizeintcomma }} VND</li>
+                    <li class="mx-4">Tạo bởi: {{ row.Creator }}, ngày {{ row.Created_Time|date:'d-m-Y' }} lúc
+                        {{ row.Created_Time|date:'H:i:s' }}
+                    </li>
+                    <hr>
+                    <p class="fs-5 text-primary">Lưu Ý: Tất Cả Giao Dịch Chuyển Đi Từ Lô Hàng Này Về Sau Cũng Sẽ Bị
+                        Xóa.</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form }}
+                    <input class="btn btn-danger" type="submit" value="Đúng, tôi chắc chắn">
+                    <a class="btn btn-secondary mx-3" href="{% url 'sales_hn' row.year %}">Hủy</a>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends 'CoreParts/base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %} Dệt-Tẩy {{ year }} {% endblock %}
+{% block content %}
+{% now 'Y' as current_year %}
+<div class="container-fluid">
+    <div class="col-md-12 mx-3 my-2" style="background:#990000">
+        <div class="row">
+            <div class="col-md-4 offset-md-3">
+                <h2 class="text-center text-white fw-bold fs-2">Xuất Hàng DỆT - TẨY</h2>
+            </div>
+
+            <div class="col-md-3 mt-2 me-auto">
+                <form id="year-form" method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <label class="text-white fs-5 fw-bold col-md-2 mt-2" for="year">Năm:</label>
+                        <input name="year" id="year"
+                               class="col-md-3 mx-2 mb-1 text-center text-danger fs-5 fw-bold ms-4 px-0"
+                               type="number" value="{{ year }}" required>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7 offset-md-1">
+            <a type="button" class="btn btn-success text-white btn-sm" href="{% url 'Det_Tay_add' %}">THÊM MỚI</a>
+
+            {% if hn == False %}
+            <a type="button" class="btn btn-secondary btn-sm border" href="{% url 'Det_Tay_hn' year %} ">ẨN GHI CHÚ</a>
+            {% else %}
+            <a type="button" class="btn btn-primary btn-sm border" href="{% url 'Det_Tay' year %} ">HIỆN GHI CHÚ</a>
+            {% endif %}
+            <a type="button" class="btn btn-warning text-white btn-sm offset-md-1"
+               href="{% if hn == True %}{% url 'Tay_Moc_hn' year %}{% else %}{% url 'Tay_Moc' year %}{% endif %}">Tẩy-Mộc</a>
+            <a type="button" class="btn btn-warning text-white btn-sm"
+               href="{% if hn == True %}{% url 'Tay_In_hn' year %}{% else %}{% url 'Tay_In' year %}{% endif %}">Tẩy-In</a>
+            <a type="button" class="btn btn-warning text-white btn-sm"
+               href="{% url 'Tay_Nhuom_hn' current_year %}">Tẩy-Nhuộm</a>
+        </div>
+        <div class="col-md-2 wordset">
+            <ul>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title=""
+                       data-bs-original-title="Pdf: unavailable"
+                       aria-label="pdf"><img src="{% static 'assets/img/icons/pdf.svg' %}" alt="img"></a>
+                </li>
+                <li>
+                    <a href="{% url 'Det_Tay_export' %}?year={{ year }}"
+                       data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="Excel"
+                       aria-label="excel"><img src="{% static 'assets/img/icons/excel.svg' %}" alt="img"></a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title=""
+                       data-bs-original-title="Print: unavailable"
+                       aria-label="print"><img src="{% static 'assets/img/icons/printer.svg' %}" alt="img"></a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-2">
+            <input class="border border-success px-2" type="text" id="my-filter" placeholder="Table search...">
+        </div>
+    </div>
+
+    <div class="row my-2 mx-3 border border-success border-2 table-responsive" style="max-height:66vh; overflow-y:auto">
+        <table class="table table-striped border table-sm table-responsive me-5">
+            <thead class="bg-success">
+            <tr class="text-center">
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Ngày</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Phân
+                    Loại
+                </th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Tên Hàng
+                </th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">m/kg</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Khổ</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">% Spandex</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Nơi Đi</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Nơi Đến</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Mã Lô</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Số Cây</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Khối Lượng</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Tồn (Cây)</th>
+                {% if hn == False %}
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Ghi Chú</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Người Sửa Cuối</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Lần Sửa Cuối</th>
+                {% endif %}
+                <th scope="col" class="text-white" style="width:250px; vertical-align:middle">...</th>
+            </tr>
+            <form id="filter-form" method="GET"
+                  action="{% if hn == True %} {% url 'Det_Tay_hn' year %} {% else %} {% url 'Det_Tay' year %} {% endif %}">
+                <tr class="bg-white">
+                    {% for select in selection_generator %}
+                    <td>
+                        <select class="select-filter-type" name="filter_option_{{select.0}}">
+                            {% if select.1 == 'text' %}
+                            <option value="exact">Chính Xác</option>
+                            <option value="icontains">Có Chứa</option>
+                            {% elif select.1 == 'number' or select.1 == 'date' %}
+                            <option value="exact">=</option>
+                            <option value="gte">>=</option>
+                            <option value="lte"><=</option>
+                            <option value="gt">></option>
+                            <option value="lt"><</option>
+                            {% endif %}
+                        </select>
+                    </td>
+                    {% endfor %}
+                    {% if hn == False %}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    {% endif %}
+                    <td>
+                        <button class="btn btn-sm btn-secondary ms-3 px-4" type="button" onclick="clearFilters()">Clear
+                            </button>
+                    </td>
+                </tr>
+
+                <tr class="bg-white">
+                    <td><input class="filter-input" style="width:1px" type="date" name="col1_filter"
+                               value="{{ request.GET.col1_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col2_filter"
+                               value="{{ request.GET.col2_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col3_filter"
+                               value="{{ request.GET.col3_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col4_filter"
+                               value="{{ request.GET.col4_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col5_filter"
+                               value="{{ request.GET.col5_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col6_filter"
+                               value="{{ request.GET.col6_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col7_filter"
+                               value="{{ request.GET.col7_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col8_filter"
+                               value="{{ request.GET.col8_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col9_filter"
+                               value="{{ request.GET.col9_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="number" step="0" name="col10_filter"
+                               value="{{ request.GET.col10_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="number" step="any" name="col11_filter"
+                               value="{{ request.GET.col11_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="number" step="0" name="col12_filter"
+                               value="{{ request.GET.col12_filter }}"></td>
+                    {% if hn == False %}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    {% endif %}
+                    <td>
+                            <button class="btn btn-sm btn-danger ms-3 px-4" type="submit">Filter</button>
+                    </td>
+                </tr>
+            </form>
+            </thead>
+            <tbody id="my-table-body">
+            {% for row in rows %}
+            <tr class="my-0 tr-filter">
+
+                <td class="border text-center fw-bold fs-5">{{ row.Date|date:'d-m-Y' }}</td>
+                <td class="border text-center fw-bold fs-5">{{ row.Product_class }}</td>
+                <td class="border text-center fw-bold fs-5">{{ row.Product_name }}</td>
+                <td class="border text-center fw-bold fs-5">{{ row.M_per_kg|default:'' }}</td>
+                <td class="border text-center fw-bold fs-5">{{ row.Fit_size|default:'' }}</td>
+                <td class="border text-center fw-bold fs-5">{{ row.Spandex_rate|default:'-' }}%</td>
+                <td class="border text-center fw-bold fs-5">{{ row.FromWhere|default:'-' }}</td>
+                <td class="border text-center fw-bold fs-5">{{ row.Destination }}</td>
+                <td class="border text-center fw-bold fs-5"><a href="{% url 'Det_Tay_detail' row.id %}" target="_blank">
+                    {{ row.BatchID }}</a></td>
+                <td class="border text-center fw-bold fs-5">{{ row.Quantity|intcomma }}</td>
+                <td class="border text-center fw-bold fs-5">{{ row.Weight|intcomma }}</td>
+                <td class="border text-center fw-bold fs-5">{{ row.CS|intcomma }}</td>
+                {% if hn == False %}
+                <td class="border text-danger fw-bold text-center">{{ row.Note }}</td>
+                <td class="border text-danger fw-bold text-center">{{ row.User_Create }}</td>
+                <td class="border text-danger fw-bold text-center">{{ row.Created_Time|date:'d-m-Y (H:i:s)' }}</td>
+                {% endif %}
+                <td class="row ms-0 me-0" style="width:250px">
+
+                    <div class="dropdown col-md-5 me-3">
+                        <button type="button"
+                                class="btn btn-success btn-sm text-white dropdown-toggle {% if row.current_stock <= 0 %} disabled {% endif %}"
+                                id="Transfer_dropdown" data-bs-toggle="dropdown" aria-expanded="false" }
+                        ">
+                        {% if row.current_stock > 0 %} Chuyển Đi {% else %} Hết Hàng {% endif %}
+                        </button>
+                        <ul class="dropdown-menu" style="min-width:50px" aria-labelledby="Transfer_dropdown">
+                            <li><a class="dropdown-item fw-bold text-center" href="{% url 'Tay_Moc_add' pk=row.id %}">Bán
+                                Mộc</a></li>
+                            <li><a class="dropdown-item fw-bold text-center" href="{% url 'Tay_In_add' pk=row.id %}">Hàng
+                                In</a></li>
+                            <li><a class="dropdown-item fw-bold text-center" href="{% url 'Tay_Nhuom_add' pk=row.id %}">Nhuộm
+                                Màu</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-3">
+                        <a type="button"
+                           class="btn btn-warning btn-sm text-white {% if user != row.User_Create and not user.is_superuser %} disabled {% endif %}"
+                           href="{% url 'Det_Tay_update' pk=row.id %}">Sửa</a>
+                    </div>
+                    <div class="col-md-3">
+                        <a type="button"
+                           class="btn btn-danger btn-sm text-white {% if user != row.User_Create and not user.is_superuser %} disabled {% endif %}"
+                           href="{% url 'Det_Tay_delete' pk=row.id %}">Xóa</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            {% for message in messages %}
+            {% if message %}
+
+            <div class="rounded-pill rounded-3 p-1 mx-5 alert alert-{{ message.tags }}">
+                <p class="text-center fs-5 close close-auto">{{ message }}</p>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+<!--additional scripts-->
+<script>
+    {% if hn == True %}
+        document.querySelector('#year').setAttribute('data-redirect-url', '{% url 'Det_Tay_hn' year=0 %}');
+    {% else %}
+        document.querySelector('#year').setAttribute('data-redirect-url', '{% url 'Det_Tay' year=0 %}');
+    {% endif %}
+</script>
+<script>
+    document.querySelector('#year').addEventListener('change', function() {
+        var redirectUrl = this.getAttribute('data-redirect-url');
+        if (redirectUrl) {
+            var value = this.value;
+            redirectUrl = redirectUrl.replace('0', encodeURIComponent(value));
+            window.location.href = redirectUrl;
+        }
+    });
+
+    document.querySelector('#year').addEventListener('load', function() {
+        var redirectUrl = this.getAttribute('data-redirect-url');
+        if (redirectUrl) {
+            var value = this.value;
+            redirectUrl = redirectUrl.replace('0', encodeURIComponent(value));
+            window.location.href = redirectUrl;
+        }
+    });
+
+</script>
+<script>
+  window.addEventListener('load', adjustInputWidth);
+
+  function adjustInputWidth() {
+    var headerCells = document.querySelectorAll('.header-cell');
+    var filterInputs = document.querySelectorAll('.filter-input');
+
+    for (var i = 0; i < headerCells.length; i++) {
+      filterInputs[i].style.width = headerCells[i].offsetWidth + 'px';
+    }
+  }
+
+</script>
+<script>
+
+</script>
+<script>
+
+</script>
+
+
+{% endblock %}

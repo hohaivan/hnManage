@@ -1,0 +1,37 @@
+{% extends 'CoreParts/base.html' %}
+{% load humanize %}
+{% block title %} Xóa: Trả Tiền Sợi {% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-6 offset-md-3">
+            <div class="border bg-white p-3">
+                <p class="fs-4 fw-bold">Xóa Dữ Liệu TRẢ TIỀN SỢI</p>
+                <hr>
+                <div class="alert alert-danger">
+                    <p class ="fs-4">Bạn có chắc muốn xóa dữ liệu này?</p>
+                    <li class="mx-4">Ngày: {{ row.Date|date:'d-m-Y' }}</li>
+                    <li class="mx-4">Người Bán: {{ row.Vendor }}</li>
+                    <li class="mx-4">Số Tiền: {{ row.Pay.normalize|intcomma }} VNĐ</li>
+                    <li class="mx-4">Phần Cọc: {{ row.Deposit.normalize|intcomma }} VNĐ</li>
+                    <li class="mx-4">Trả Theo Mã Lô: {{ row.Batch|default:'' }}</li>
+
+                    <li class="mx-4">Tạo bởi: {{ row.Creator }}, ngày {{ row.Created_Time|date:'d-m-Y' }} lúc {{ row.Created_Time|date:'H:i:s' }}</li>
+                    <hr>
+                    <p class ="fs-5 text-primary">Lưu Ý: Tất Cả Giao Dịch Phía Sau Cũng Sẽ Bị Xóa.</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form }}
+                    <input class="btn btn-danger" type="submit" value="Đúng, tôi chắc chắn">
+                    {% now 'Y' as current_year %}
+                    <a class="btn btn-secondary mx-3" href="{% url 'yarn_pay' row.year %}">Hủy</a>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

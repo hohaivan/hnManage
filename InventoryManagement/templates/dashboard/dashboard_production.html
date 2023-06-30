@@ -1,0 +1,476 @@
+{% extends 'CoreParts/base_2.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %} {{ title }} {% endblock %}
+{% block heading %}
+    <h1 class="fw-bold text-red mx-5 mb-1 text-center">Biểu Đồ Sản Xuất</h1>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_11" width="500" height="500"></canvas>
+        </div>
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_12" width="500" height="500"></canvas>
+            <p id="weaving_yield" class="fw-bold"></p>
+        </div>
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_13" width="500" height="500"></canvas>
+        </div>
+        <div class="col-md-3 border border-3">
+            <h3 class="mt-2 text-center fw-bold fs-3 text-info">Tiêu Thụ Sợi {{year}}</h3>
+            <form method="GET" action="{% url 'dashboard_production' %}">
+                <div class="col-md-12">
+                    <label class="text-success fw-bold mt-2 ms-3" for="sd_def_rate">Tỷ Lệ Spandex Mặc Định:</label>
+                    <input class="text-center" name="sd_def_rate" id="sd_def_rate" style="width:45px" type="number"
+                           step="any" {% if not request.user.is_superuser %} disabled {% endif %}
+                           data-toggle="tooltip" data-placement="top" title="Only Admin can change this value"
+                           value="{{ spandex_rate }}" required>%
+                    <button class="ms-3 btn btn-sm btn-danger {% if not request.user.is_superuser %} disabled {% endif %}" type="submit"
+                    data-toggle="tooltip" data-placement="top" title="Only Admin can change this value">Lưu</button>
+                </div>
+            </form>
+
+            <div class="row">
+                <div class="card col-md-11 ms-3 mt-1 bg-success mb-2">
+                    <div class="card-body">
+                        <div class="card-title text-center text-white">Khối Lượng Sợi Spandex</div>
+                        <hr style="color:white">
+                        <div id="sd-weight" class="card-text text-center text-white fs-3 fw-bold mt-1"></div>
+                        <div id="sd-weight-pc" class="card-text text-center text-white fs-5 mb-0"></div>
+                    </div>
+                </div>
+                <div class="col-md-10 offset-md-1 bg-warning text-white rounded-2 fs-5 fw-bold py-1">
+                    <p class="text-center mb-0">Áp Dụng Mặc Định Cho:</p>
+                    <p class="text-center" id="null-count"></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_14" width="500" height="500"></canvas>
+        </div>
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_15" width="500" height="500"></canvas>
+        </div>
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_16" width="500" height="500"></canvas>
+        </div>
+        <div class="col-md-3 border border-3">
+            <div class="col-md-12 mt-1 border border-info rounded-3 p-1">
+                <form method="GET" action="{% url 'dashboard_production' %}">
+                    <label class="text-success fw-bold mt-2 ms-3" for="warehouse-selection">Tên Kho Tẩy:</label>
+                    <select id="warehouse-selection" name="warehouse-selection" class="px-1 py-1">
+                       {% for option in options %}
+                            <option {% if option == WH_name %} selected {% endif %}>{{ option }}</option>
+                       {% endfor %}
+                    </select>
+                    <button class="ms-3 btn btn-sm btn-danger" type="submit">Tìm</button>
+                </form>
+            </div>
+            <div class="row mt-1">
+                <h5 class="text-center text-danger" >Kho:{{ WH_name|default:'' }}</h5>
+                <div class="col-md-11 my-2 mx-3 table-responsive" style="max-height:35vh; overflow-y:auto">
+                    <table class="table table-striped border table-sm table-responsive me-5">
+                    <thead class="bg-success">
+                        <tr>
+                            <th scope="col" class="text-white text-center">Loại Hàng</th>
+                            <th scope="col" class="text-white text-center">Tồn (Cây)</th>
+                            <th scope="col" class="text-white text-center">Trước {{ year }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in stock_results %}
+                            <tr>
+                                <td class="text-center">{{ item.Product_class__Product_class }}</td>
+                                <td class="text-center">{{ item.Tt_CS|intcomma }}</td>
+                                <td class="text-center">{{ item.Tt_CS_PreviousYears|intcomma }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    {% endblock %}
+    {% block more_scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="{% static 'assets/js/compare-dataset.js' %}"></script>
+    <!-- Charts and calculations with AJAX -->
+    <script>
+Chart.register(ChartDataLabels);
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx_11 = document.getElementById('Chart_11').getContext('2d');
+    var ctx_12 = document.getElementById('Chart_12').getContext('2d');
+    var ctx_13 = document.getElementById('Chart_13').getContext('2d');
+    var ctx_14 = document.getElementById('Chart_14').getContext('2d');
+    var ctx_15 = document.getElementById('Chart_15').getContext('2d');
+    var ctx_16 = document.getElementById('Chart_16').getContext('2d');
+
+//Chart_11 configs
+    var myChart_11 = new Chart(ctx_11, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Khối Lượng',
+                data: [],
+                backgroundColor: ['rgba(255, 100, 100, 1)',
+                                 ],
+                borderColor: 'rgba(255, 100, 100, 1)',
+                borderWidth: 3
+            },
+
+            ]
+        },
+            options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function (value, index, values) {
+              if (value >= 1000|| value <=-1000) {
+                return (value / 1000) + ' Tấn';
+              }
+              return value;
+            }
+          }
+        }
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: '{{ C11_name }}',
+          font: { size: 16 }
+        },
+        datalabels: {
+          display: false,
+        }
+      }
+    }
+    });
+
+//Chart_12 configs
+var myChart_12 = new Chart(ctx_12, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Khối Lượng',
+                    data: [],
+                    backgroundColor: ['rgba(255, 0, 0, 0.5)',
+                                      'rgba(0, 255, 0, 0.5)',
+                                      'rgba(0, 0, 255, 0.5)',
+                                      'rgba(0, 0, 0, 0.5)'
+                                     ],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                cutout: '50%',
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '{{ C12_name }}',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    datalabels: {
+                        formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(1);
+                            return percentage + '%';
+                        },
+                        color: '#fff',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: 10
+                    }
+                }
+            }
+        });
+
+//Chart_13 configs
+var myChart_13 = new Chart(ctx_13, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Khối Lượng',
+                data: [],
+                backgroundColor: ['rgba(239, 23, 101, 0.65)',
+                                 ],
+                borderColor: 'rgba(239, 23, 101, 1)',
+                borderWidth: 1.5
+            },
+
+            ]
+        },
+        options: {
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        callback: function (value, index, values) {
+          if (value >= 1000|| value <=-1000) {
+            return (value / 1000) + ' Tấn';
+          }
+          return value;
+        }
+      }
+    }
+  },
+  plugins: {
+    title: {
+      display: true,
+      text: '{{ C13_name }}',
+      font: { size: 16 }
+    },
+    datalabels: {
+       formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(0);
+                            return percentage + '%';
+                        },
+                        color: 'rgba(0,0,0,1)',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: -18
+    }
+  }
+}
+});
+//Chart 14 Configs
+var myChart_14 = new Chart(ctx_14, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Số Cây',
+                                data: [],
+                                backgroundColor: ['rgba(88, 217, 215, 0.5)',
+                                                 ],
+                                borderColor: 'rgba(88, 217, 215, 1)',
+                                borderWidth: 1.5
+                            },
+                            ]
+                        },
+                        options: {
+                            scales: {
+                                x: { stacked: true },
+                                y: { stacked: true }
+                            },
+                            plugins: {
+                                title: {
+                                  display: true,
+                                  text: '{{ C14_name }}',
+                                  font: { size: 16 }
+                                },
+                                datalabels: {
+
+                                                    color: 'rgba(0,0,0,1)',
+                                                    font: {
+                                                        weight: 'bold'
+                                                    },
+                                                    anchor: 'end',
+                                                    align: 'start',
+                                                    offset: -18
+                                }
+                            },
+
+                        }
+                    });
+
+//Chart_15 configs
+var myChart_15 = new Chart(ctx_15, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Khối Lượng',
+                    data: [],
+                    backgroundColor: ['rgba(255, 0, 0, 0.5)',
+                                      'rgba(0, 255, 0, 0.5)',
+                                      'rgba(0, 0, 255, 0.5)',
+                                      'rgba(0, 0, 0, 0.5)'
+                                     ],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                cutout: '50%',
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '{{ C15_name }}',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    datalabels: {
+                        formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(1);
+                            return percentage > 5 ? percentage + '%' : null;
+                        },
+                        color: '#fff',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: 10
+                    }
+                }
+            }
+        });
+
+//Chart_16 configs
+var myChart_16 = new Chart(ctx_16, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Khối Lượng',
+                    data: [],
+                    backgroundColor: ['rgba(0, 255, 0, 0.7)',
+                                      'rgba(255, 0, 0, 0.7)',
+                                      'rgba(0, 0, 255, 0.7)',
+                                      'rgba(0, 0, 0, 0.7)'
+                                     ],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                cutout: '50%',
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '{{ C16_name }}',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    datalabels: {
+                        formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(1);
+                            return percentage > 5 ? percentage + '%' : null;
+                        },
+                        color: '#fff',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: 10
+                    }
+                }
+            }
+        });
+
+    function updateChart() {
+        $.ajax({
+            url: '/dashboard/production/live/',
+            method: 'GET',
+            success: function(response) {
+                myChart_11.data.labels = response.C11_labels_qs1;
+                myChart_11.data.datasets[0].data = response.C11_values_qs1;
+                myChart_11.update();
+
+                myChart_12.data.labels = response.C12_labels_qs1;
+                myChart_12.data.datasets[0].data = response.C12_values_qs1;
+                myChart_12.update();
+
+                myChart_13.data.labels = response.C13_labels_qs1;
+                myChart_13.data.datasets[0].data = response.C13_values_qs1;
+                myChart_13.update();
+
+                myChart_14.data.labels = response.C14_labels_qs1;
+                myChart_14.data.datasets[0].data = response.C14_values_qs1;
+                myChart_14.update();
+
+                myChart_15.data.labels = response.C15_labels_qs1;
+                myChart_15.data.datasets[0].data = response.C15_values_qs1;
+                myChart_15.update();
+
+                myChart_16.data.labels = response.C16_labels_qs1;
+                myChart_16.data.datasets[0].data = response.C16_values_qs1;
+                myChart_16.update();
+
+//Chart 15
+
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    }
+    updateChart();
+    setInterval(updateChart, 5000);
+});
+    </script>
+    <script>
+  function update() {
+    $.ajax({
+      url: '/dashboard/production/live/',
+      type: 'GET',
+      dataType: 'json',
+      success: function(response) {
+// total weaving yield
+        var Weaving_yield_Div = $('#weaving_yield');
+        var Tt_weaving = response.Total_weaving_yield.Weight__sum;
+        var Tt_weaving_f = new Intl.NumberFormat().format(Tt_weaving);
+        Weaving_yield_Div.text('Tổng Sản Lượng: ' + Tt_weaving_f + 'kg');
+// spandex_weight
+        var sd_weight_div = $('#sd-weight');
+        var sd_pc_div = $('#sd-weight-pc');
+        sd_pc = (response.total_spandex_weight/Tt_weaving * 100).toFixed(2) + '%'
+        sd_weight_div.text(response.total_spandex_weight + ' kg');
+        sd_pc_div.text('(' + sd_pc + ')')
+// null-count
+        var null_count_div = $('#null-count');
+        var null_percent = (response.null_count/response.all_count * 100).toFixed(0) + '%'
+        null_count_div.text(response.null_count + '/' + response.all_count + ' (' + null_percent + ')');
+
+      },
+      error: function(xhr, status, error) {
+        console.error('AJAX Error:', status, error);
+      }
+    });
+  }
+
+  $(document).ready(function() {
+    update();
+    setInterval(update, 5000);
+  });
+
+    </script>
+
+
+    {% endblock %}

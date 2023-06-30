@@ -1,0 +1,211 @@
+{% extends 'CoreParts/base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block title %} Công Nợ Sợi {{year}} {% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="col-md-12 mx-3 my-2" style="background-color:#021b73">
+        <div class="row">
+            <div class="col-md-4 offset-md-3">
+                <h2 class="text-center text-white fw-bold fs-2">THỐNG KÊ CÔNG NỢ SỢI</h2>
+            </div>
+
+            <div class="col-md-3 mt-2 me-auto">
+                <form id="year-form" method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <label class="text-white fs-5 fw-bold col-md-2 mt-2 offset-md-3" for="year">Năm:</label>
+                        <input name="year" id="year" class="col-md-3 mx-2 mt-1 mb-1 text-center text-danger fs-5 fw-bold ms-4 px-0" type="number" value="{{ year }}" required>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7 offset-md-1">
+            <form method="GET">
+                {% csrf_token %}
+                <label class="fw-bold col-md-2" for="year">Tính Đến Ngày:</label>
+                <input class="fw-bold fs-5 text-red border border-3 border-success px-2" type="date"
+                       name="filter_date" id="date-input" value="{{ filter_date }}" required/>
+                <button type="submit">Lọc</button>
+            </form>
+        </div>
+        <div class="col-md-2 wordset">
+            <ul>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="Pdf: unavailable"
+                       aria-label="pdf"><img src="{% static 'assets/img/icons/pdf.svg' %}" alt="img"></a>
+                </li>
+                <li>
+                    <a href="{% url 'YarnDebt_export' %}?year={{ year }}"
+                       data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="Excel"
+                       aria-label="excel"><img src="{% static 'assets/img/icons/excel.svg' %}" alt="img"></a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="Print: unavailable"
+                       aria-label="print"><img src="{% static 'assets/img/icons/printer.svg' %}" alt="img"></a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-2">
+            <input class="border border-success px-2" type="text" id="my-filter" placeholder="Table search...">
+        </div>
+    </div>
+    <div class="row my-2 mx-3 border border-success border-2 table-responsive" style="max-height:66vh; overflow-x:auto">
+
+        <table class="table table-striped table-auto table-hover table-bordered table-sm table-responsive me-5">
+            <thead class="bg-yarn-order">
+            <tr class="text-center">
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Người Bán</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Mã Người Bán</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Công Nợ {{ last_year }}</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">**Công Nợ {{ last_year }}</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Tiền Sợi Đã Giao</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Đã Thanh Toán</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Công Nợ Hiện Tại</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Ngày Giao Sợi Cuối: (d-m-y)</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Ngày Trả Tiền Cuối: (d-m-y)</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Khớp Dữ Liệu</th>
+                <th scope="col" class="text-white" style="width:140px; vertical-align:middle">...</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for row in rows %}
+            <tr class="my-0 tr-filter">
+                <td class ="border text-center fw-bold fs-5">{{ row.Name }}</td>
+                <td class ="border text-center fw-bold fs-5">{{ row.VendorCode }}</td>
+                <td class ="border text-center fw-bold fs-5">
+                    {% for vd in debt_LY %}
+                        {% if vd.Vendor == row %}
+                            {{ vd.Debt.normalize|intcomma }}
+                        {% endif %}
+                    {% empty %}
+                    {% endfor %}
+                </td>
+                <td class ="border text-center fw-bold fs-5">
+                    {% for vd in debt_LY %}
+                        {% if vd.Vendor == row %}
+                            {{ vd.Auto_Calculation.normalize|intcomma }}
+                        {% endif %}
+                    {% empty %}
+                    {% endfor %}
+                </td>
+                <td class ="border text-center fw-bold fs-5">
+                    {% for item in Total_BuyValue %}
+                        {% if item.OrderID__Vendor__Name == row.Name %}
+                            {{ item.BuyValue.normalize|intcomma }}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+
+                <td class ="border text-center fw-bold fs-5">
+                    {% for item in Total_PaidValue %}
+                        {% if item.Vendor__Name == row.Name %}
+                            {{ item.PaidValue.normalize|intcomma }}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td class ="text-primary border text-center fw-bold fs-5">
+                    {% for item in Debt_Queryset %}
+                        {% if item.Name == row.Name %}
+                            {{ item.debt_value.normalize|intcomma }}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td class ="border text-center fw-bold fs-5">
+                    {% for item in Total_BuyValue %}
+                        {% if item.OrderID__Vendor__Name == row.Name %}
+                            {{ item.Last_Delivery|date:'d-m-Y' }}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td class ="border text-center fw-bold fs-5">
+                    {% for item in Total_PaidValue %}
+                        {% if item.Vendor__Name == row.Name %}
+                            {{ item.Last_Paid|date:'d-m-Y' }}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td class ="border text-center fw-bold fs-5">
+                    {% for vd in debt_LY %}
+                        {% if vd.Vendor == row %}
+                            {% if vd.Data_Match %}
+                                <p class="text-success">Có</p>
+                            {% else %}
+                                <p class="text-danger">Không</p>
+                            {% endif %}
+                        {% endif %}
+                    {% empty %}
+                    {% endfor %}
+                </td>
+
+
+                <td class="row my-auto ms-0 me-0" style="width:140px">
+                    <div class="col-md-6">
+                        <a type="button"
+                           class="btn btn-success btn-sm text-white {% if row.Creator != user and not user.is_superuser %} disabled {% endif %}"
+                           href="{% url 'yarn_debt_add' Vendor_id=row.id Year=year %}">Thêm</a>
+                    </div>
+                    <div class="col-md-6">
+                        <a type="button"
+                           class="btn btn-warning btn-sm text-white {% if row.Creator != user and not user.is_superuser %} disabled {% endif %}"
+                           href="{% url 'yarn_debt_update' Vendor_id=row.id Year=year %}">Sửa</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+                <td class ="border bg-success text-white text-center fw-bold fs-5"></td>
+                <td class ="border bg-success text-white text-center fw-bold fs-5">TỔNG:</td>
+                <td class ="border bg-success text-white text-center fw-bold fs-5">{{ Grant_Old_Debt.Debt__sum.normalize|intcomma }}</td>
+                <td class ="border bg-success text-white text-center fw-bold fs-5"></td>
+                <td class ="border bg-success text-white text-center fw-bold fs-5">{{ Grant_BuyValue.BuyValue__sum.normalize|intcomma }}</td>
+                <td class ="border bg-success text-white text-center fw-bold fs-5">{{ Grant_PaidValue.PaidValue__sum.normalize|intcomma }}</td>
+                <td class ="border bg-success text-white text-center fw-bold fs-5">{{ Grant_DebtValue.debt_value__sum.normalize|intcomma }}</td>
+                <td class ="border bg-success text-white text-center fw-bold fs-5"></td>
+                <td class ="border bg-success text-white text-center fw-bold fs-5"></td>
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <p class="col md-1 fw-bold text-green fst-italic">
+        Ghi Chú: ** là số liệu hệ thống tự thống kê lại dựa theo dữ liệu được nhập vào từ các bảng dữ liệu khác</p>
+    </div>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            {% for message in messages %}
+            {% if message %}
+
+            <div class="rounded-pill rounded-3 p-1 mx-5 alert alert-{{ message.tags }}">
+                <p class="text-center fs-5 close close-auto">{{ message }}</p>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!--additional scripts-->
+<script>
+    document.querySelector('#year').setAttribute('data-redirect-url', '{% url 'yarn_debt' year=0 %}');
+</script>
+<script>
+    document.querySelector('#year').addEventListener('change', function() {
+        var redirectUrl = this.getAttribute('data-redirect-url');
+        if (redirectUrl) {
+            var value = this.value;
+            redirectUrl = redirectUrl.replace('0', encodeURIComponent(value));
+            window.location.href = redirectUrl;
+        }
+    });
+</script>
+
+
+{% endblock %}

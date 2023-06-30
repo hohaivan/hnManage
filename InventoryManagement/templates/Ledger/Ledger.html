@@ -1,0 +1,237 @@
+{% extends 'CoreParts/base.html' %}
+{% load humanize %}
+{% load static %}
+{% block title %} Thu Chi {{ year }} {% endblock %}
+{% block content %}
+
+<div class="container-fluid">
+    <div class="col-md-12 mx-3 my-2" style="background-color:#021b73">
+        <div class="row">
+            <div class="col-md-4 offset-md-3">
+                <h2 class="text-center text-white fw-bold fs-2">Quản Lý Thu Chi</h2>
+            </div>
+
+            <div class="col-md-3 mt-2 me-auto">
+                <form id="year-form" method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <label class="text-white fs-5 fw-bold col-md-2 mt-2 offset-md-3" for="year">Năm:</label>
+                        <input name="year" id="year"
+                               class="col-md-3 mx-2 mt-1 mb-1 text-center text-danger fs-5 fw-bold ms-4 px-0"
+                               type="number" value="{{ year }}" required>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7 offset-md-1">
+            <a type="button" class="btn btn-success btn-sm border" href="{% url 'ledger_add' %}">THÊM MỚI</a>
+            {% if hn == True %}
+            <a type="button" class="btn btn-primary btn-sm border" href="{% url 'ledger_view' year %}">HIỆN GHI CHÚ</a>
+            {% else %}
+            <a type="button" class="btn btn-secondary btn-sm border" href="{% url 'ledger_view_hn' year %} ">ẨN GHI
+                CHÚ</a>
+            {% endif %}
+        </div>
+        <div class="col-md-2 wordset">
+            <ul>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title=""
+                       data-bs-original-title="Pdf: unavailable"
+                       aria-label="pdf"><img src="{% static 'assets/img/icons/pdf.svg' %}" alt="img"></a>
+                </li>
+                <li>
+                    <a href="{% url 'ledger_export' %}?year={{ year }}"
+                       data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="Excel"
+                       aria-label="excel"><img src="{% static 'assets/img/icons/excel.svg' %}" alt="img"></a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title=""
+                       data-bs-original-title="Print: unavailable"
+                       aria-label="print"><img src="{% static 'assets/img/icons/printer.svg' %}" alt="img"></a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-2">
+            <input class="border border-success px-2" type="text" id="my-filter" placeholder="Table search...">
+        </div>
+    </div>
+    <div class="row my-2 mx-3 border border-success border-2 table-responsive" style="max-height:66vh; overflow-x:auto">
+
+        <table class="table table-striped table-auto table-hover table-bordered table-sm table-responsive me-5">
+            <thead class="bg-yarn-order">
+            <tr class="text-center">
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Ngày Giao Dịch</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Thu/Chi</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Số Tiền</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Hạng Mục Giao Dịch
+                </th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Diễn Giải</th>
+                <th scope="col" class="header-cell border text-wrap text-white" style="vertical-align:middle">Đồng Bộ</th>
+
+                {% if hn == False %}
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Ghi Chú</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Người Sửa Cuối</th>
+                <th scope="col" class="border text-wrap text-white" style="vertical-align:middle">Lần Sửa Cuối</th>
+                {% endif %}
+                <th scope="col" class="text-white" style="width: 140px; vertical-align:middle">...</th>
+            </tr>
+            <form id="filter-form" method="GET"
+                  action="{% if hn == True %} {% url 'ledger_view_hn' year %} {% else %} {% url 'ledger_view' year %} {% endif %}">
+                <tr class="bg-white">
+                    {% for select in selection_generator %}
+                    <td>
+                        <select class="select-filter-type" name="filter_option_{{select.0}}">
+                            {% if select.1 == 'text' %}
+                            <option value="exact">Chính Xác</option>
+                            <option value="icontains">Có Chứa</option>
+                            {% elif select.1 == 'number' or select.1 == 'date' %}
+                            <option value="exact">=</option>
+                            <option value="gte">>=</option>
+                            <option value="lte"><=</option>
+                            <option value="gt">></option>
+                            <option value="lt"><</option>
+                            {% endif %}
+                        </select>
+                    </td>
+                    {% endfor %}
+                    {% if hn == False %}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    {% endif %}
+                    <td>
+                        <button class="btn btn-sm btn-secondary ms-3 px-4" type="button" onclick="clearFilters()">Clear
+                            </button>
+                    </td>
+                </tr>
+
+                <tr class="bg-white">
+                    <td><input class="filter-input" style="width:1px" type="date" name="col1_filter"
+                               value="{{ request.GET.col1_filter }}"></td>
+                    <td><select class="filter-input" style="width:1px" type="text" name="col2_filter">
+                            <option value="">---------</option>
+                            {% for type in RP_Choices %}
+                                <option {% if request.GET.col2_filter == type.0 %} selected {% endif %}
+                                        value="{{ type.0 }}">{{ type.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col3_filter"
+                               value="{{ request.GET.col3_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col4_filter"
+                               value="{{ request.GET.col4_filter }}"></td>
+                    <td><input class="filter-input" style="width:1px" type="text" name="col5_filter"
+                               value="{{ request.GET.col5_filter }}"></td>
+                    <td><select class="filter-input" style="width:1px" type="text" name="col6_filter">
+                        <option value="">---------</option>
+                        <option {% if request.GET.col6_filter == '1' %} selected {% endif %} value="1">Có</option>
+                        <option {% if request.GET.col6_filter == '0' %} selected {% endif %} value="0">Không</option>
+                        </select>
+                    </td>
+                    {% if hn == False %}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    {% endif %}
+                    <td>
+                            <button class="btn btn-sm btn-danger ms-3 px-4" type="submit">Filter</button>
+                    </td>
+                </tr>
+            </form>
+            </thead>
+            <tbody>
+            {% for row in rows %}
+            <tr class="my-0 tr-filter">
+                <td class="border text-center fw-bold fs-5">{{ row.Date|date:'d-m-Y' }}</td>
+                {% if row.Transaction.R_P == 'Chi' %}
+                <td class="border text-center  text-danger fw-bold fs-5">
+                    {{ row.Transaction.R_P }}
+                </td>
+                <td class="border text-center text-danger fw-bold fs-5">({{ row.Amount.normalize|intcomma }})</td>
+                {% else %}
+                <td class="border text-center  text-success fw-bold fs-5">
+                    {{ row.Transaction.R_P }}
+                </td>
+                <td class="border text-center text-success fw-bold fs-5">{{ row.Amount.normalize|intcomma }}</td>
+                {% endif %}
+
+                <td class="border text-center fw-bold fs-5">{{ row.Transaction }}</td>
+                <td class="border text-center fw-bold fs-5">{{ row.Description }}</td>
+
+                {% if row.Sync %}
+                <td class="border text-center text-success fw-bold fs-5">Có</td>
+                {% else %}
+                <td class="border text-center text-danger fw-bold fs-5">Không</td>
+                {% endif %}
+
+                {% if hn == False %}
+                <td class="border text-danger text-center fw-bold">{{ row.Note.normalize }}</td>
+                <td class="border text-danger text-center">{{ row.Creator }}</td>
+                <td class="border text-danger text-center">{{ row.Created_Time|date:'d-m-Y (H:i:s)' }}</td>
+                {% endif %}
+                {% if not row.Sync %}
+                <td class="row my-auto ms-0 me-0" style="width:140px">
+
+                    <div class="col-md-5">
+                        <a type="button"
+                           class="btn btn-warning btn-sm text-white {% if row.Creator != user and not user.is_superuser %} disabled {% endif %}"
+                           href="{% url 'ledger_update' pk=row.id %}">Sửa</a>
+                    </div>
+                    <div class="col-md-5 ms-2">
+                        <a type="button"
+                           class="btn btn-danger btn-sm text-white {% if row.Creator != user and not user.is_superuser %} disabled {% endif %}"
+                           href="{% url 'ledger_delete' pk=row.id %}">Xóa</a>
+                    </div>
+                </td>
+                {% else %}
+                    <td class="border text-danger text-center">Action Restricted</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            {% for message in messages %}
+            {% if message %}
+
+            <div class="rounded-pill rounded-3 p-1 mx-5 alert alert-{{ message.tags }}">
+                <p class="text-center fs-5 close close-auto">{{ message }}</p>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!--additional scripts-->
+<script>
+    {% if hn == True %}
+        document.querySelector('#year').setAttribute('data-redirect-url', '{% url 'ledger_view_hn' year=0 %}');
+    {% else %}
+        document.querySelector('#year').setAttribute('data-redirect-url', '{% url 'ledger_view' year=0 %}');
+    {% endif %}
+
+
+</script>
+<script>
+    document.querySelector('#year').addEventListener('change', function() {
+        var redirectUrl = this.getAttribute('data-redirect-url');
+        if (redirectUrl) {
+            var value = this.value;
+            redirectUrl = redirectUrl.replace('0', encodeURIComponent(value));
+            window.location.href = redirectUrl;
+        }
+    });
+
+
+</script>
+
+
+{% endblock %}

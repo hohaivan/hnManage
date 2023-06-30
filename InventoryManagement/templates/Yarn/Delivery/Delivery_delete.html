@@ -1,0 +1,40 @@
+{% extends 'CoreParts/base.html' %}
+{% load humanize %}
+{% block title %} Xóa: Giao Sợi {% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-6 offset-md-3">
+            <div class="border bg-white p-3">
+                <p class="fs-4 fw-bold">Xóa Dữ Liệu ĐẶT SỢI</p>
+                <hr>
+                <div class="alert alert-danger">
+                    <p class ="fs-4">Bạn có chắc muốn xóa dữ liệu này?</p>
+                    <li class="mx-4">Mã Lô: {{ rowID.BatchID }} - Lần Giao: {{ row.BatchNo }}</li>
+                    <li class="mx-4">Ngày: {{ row.Date|date:'d-m-Y' }}</li>
+                    <li class="mx-4">Người Bán: {{ rowID.Vendor }} -  {{ rowID.VendorCode }}</li>
+                    <li class="mx-4">Loại Sợi: {{ rowID.YarnType }} - Chỉ Số: {{ rowID.YarnStats }} - Mã Sợi: {{ row.YarnCode }}</li>
+                    <li class="mx-4">Số Thùng/Kiện: {{ row.BoxQty }} {{ row.get_Box_Pack_display}}</li>
+                    <li class="mx-4">Khối Lượng: {{ row.Weight }} kg</li>
+                    <li class="mx-4">Đơn Giá: {{ row.Price }} VNĐ</li>
+                    <li class="mx-4">Chi Phí Khác: {{ row.OtherCost }} VNĐ</li>
+                    <li class="mx-4">Thành Tiền: {{ row.Total_Pay.normalize|intcomma }} VNĐ</li>
+                    <li class="mx-4">Tạo bởi: {{ row.Creator }}, ngày {{ row.Created_Time|date:'d-m-Y' }} lúc {{ row.Created_Time|date:'H:i:s' }}</li>
+                    <hr>
+                    <p class ="fs-5 text-primary">Lưu Ý: Tất Cả Giao Dịch Chuyển Đi Từ Lô Hàng Này Về Sau Cũng Sẽ Bị Xóa.</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form }}
+                    <input class="btn btn-danger" type="submit" value="Đúng, tôi chắc chắn">
+                    {% now 'Y' as current_year %}
+                    <a class="btn btn-secondary mx-3" href="{{ request.META.HTTP_REFERER }}">Hủy</a>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

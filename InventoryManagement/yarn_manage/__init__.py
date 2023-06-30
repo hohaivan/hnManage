@@ -1,0 +1,1 @@
+default_app_config = 'yarn_manage.apps.YarnManageConfig'

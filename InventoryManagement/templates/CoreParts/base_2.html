@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> {% block title %} {% endblock %} </title>
+
+    {% include 'CoreParts/First_load.html' %}
+    {% block more_CSS %}
+
+    {% endblock %}
+</head>
+<body class="mini-sidebar">
+<div class="header">
+    <a id="mobile_btn" class="mobile_btn" href="#sidebar">
+        <span class="bar-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+        </span>
+    </a>
+
+    <ul class="nav user-menu">
+        {% block heading %} {% endblock heading %}
+        <div class="mx-5"></div>
+        <li class="nav-item">
+            <div class="fs-5 fw-bold me-0 px-2">
+                <p class="mb-0">Date: <span class="text-primary" id="clock-date"></span></p>
+                <p class="mb-0">Time: <span class="text-primary" id="clock"></span></p>
+            </div>
+        </li>
+        {% if user.is_superuser %}
+        <li class="nav-item">
+            <div class="container">
+
+                <a class="btn btn-success rounded-pill round-5 mt-2" href="{{ admin_url }}">Admin Site</a>
+            </div>
+
+        </li>
+        {% endif %}
+
+
+        <!-- user status/logout/changepass-->
+        <li class="nav-item dropdown has-arrow main-drop">
+            <a href="javascript:void(0);" class="dropdown-toggle nav-link userset" data-bs-toggle="dropdown">
+                <span class="user-img"><img src="{% static 'assets/img/profiles/avator1.jpg' %}" alt="">
+                <span class="status online"></span></span>
+            </a>
+            <div class="dropdown-menu menu-drop-user">
+                <div class="profilename">
+                    <div class="profileset">
+                <span class="user-img"><img src="{% static 'assets/img/profiles/avator1.jpg' %}" alt="">
+                <span class="status online"></span></span>
+                        <div class="profilesets">
+                            <h5 class="mt-2">{{ user }}</h5>
+                        </div>
+                    </div>
+                    <hr class="m-0">
+                    <a class="dropdown-item" href="profile.html"> <i class="me-2" data-feather="user"></i> Hồ Sơ Của Bạn</a>
+                    <a class="dropdown-item" href="{% url 'Change_Password' %}"><i class="me-2"
+                                                                                   data-feather="settings"></i>Đổi Mật
+                        Khẩu</a>
+                    <hr class="m-0">
+                    <a class="dropdown-item logout pb-0" href="{% url 'user-logout' %}"><img
+                            src="{% static 'assets/img/icons/log-out.svg'%}" class="me-2" alt="img">Đăng Xuất</a>
+                </div>
+            </div>
+        </li>
+
+    </ul>
+</div>
+<div class="page-wrapper me-2">
+    {% block content %}
+
+    {% endblock %}
+</div>
+
+{% include 'CoreParts/Last_load.html' %}
+{% block more_scripts %}
+{% endblock %}
+
+</body>
+</html>

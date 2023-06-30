@@ -1,0 +1,43 @@
+{% extends 'CoreParts/base.html' %}
+{% load static %}
+{% block title %} Sửa: Lò Tẩy {% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% now 'Y' as current_year %}
+<div class="container">
+    <div class="row mt-1 p-3">
+        <div class="col-md-8 offset-md-2">
+            <p class="border border-5 rounded-pill rounded-5 fs-4 fw-bold p-2 mx-5 text-center text-primary">Sửa:
+                Lò Tẩy</p>
+            {% for message in messages %}
+            {% if message %}
+            <hr>
+            <div class="rounded-pill rounded-3 p-1 mx-5 alert alert-{{ message.tags }}">
+                <p class="text-center fs-5">{{ message }}</p>
+            </div>
+            {% endif %}
+            {% endfor %}
+
+
+            <hr>
+            <div class="row border border-success border-5">
+                <form id="my-form" class="mt-3" method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-4"> {{ form.KhoTay|as_crispy_field }} </div>
+                        <div class="col-md-2"> {{ form.KyHieu|as_crispy_field }} </div>
+                        <div class="col-md-6"> {{ form.Address|as_crispy_field }} </div>
+                        <div class="col-md-12"> {{ form.OS|as_crispy_field }} </div>
+                        <div class="col-md-2"><input class="mb-3 px-5 btn btn-success btn-block" type="submit"
+                                                     value="Lưu"></div>
+                        <div class="col-md-3 ms-3"><a class="px-auto btn btn-danger btn-block"
+                                                      href="{% url back_link %}">Quay Lại</a></div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

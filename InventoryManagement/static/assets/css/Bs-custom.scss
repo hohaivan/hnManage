@@ -1,0 +1,19 @@
+// customize
+
+
+// import function and variables
+@import '../node_modules/bootstrap/scss/_functions';
+@import '../node_modules/bootstrap/scss/_variables';
+
+$custom-theme-colors: (
+    'print': $purple-500,
+    'dye': $yellow-800,
+    'stretch': $teal-400,
+    'yarn-order': $red-400,
+);
+
+$theme-colors: map-merge($custom-theme-colors, $theme-colors);
+
+// import bootstrap
+
+@import '../node_modules/bootstrap/scss/bootstrap';

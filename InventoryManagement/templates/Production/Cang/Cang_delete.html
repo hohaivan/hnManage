@@ -1,0 +1,42 @@
+{% extends 'CoreParts/base.html' %}
+{% block title %} Delete Data Page {% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-6 offset-md-3">
+            <div class="border border-5 border-stretch bg-white p-3">
+                <p class="fs-4 fw-bold">Xóa Dữ Liệu: Căng</p>
+                <hr>
+                <div class="alert alert-danger">
+                    <p class ="fs-4">Bạn có chắc muốn xóa dữ liệu này?</p>
+                    <li class="mx-4">Mã Lô: {{ row.BatchID }}</li>
+                    <li class="mx-4">Ngày: {{ row.Date|date:'d-m-Y' }}</li>
+                    {% if row.Product_type == 'P' %}
+                    <li class="mx-4">Phân Loại: {{ row.Print_ID.DetTay_ID.Product_class }} - Tên Hàng: {{ row.Print_ID.DetTay_ID.Product_name }}</li>
+                    <li class="mx-4">Từ: {{ row.Print_ID.Print_Des }} </li>
+                    {% elif row.Product_type == 'D' %}
+                    <li class="mx-4">Phân Loại: {{ row.Dye_ID.DetTay_ID.Product_class }} - Tên Hàng: {{ row.Dye_ID.DetTay_ID.Product_name }}</li>
+                    <li class="mx-4">Từ: {{ row.Dye_ID.Dye_Des }} </li>
+                    {% endif %}
+
+                    <li class="mx-4">Đến: {{ row.Stretch_Des }} </li>
+                    <li class="mx-4">Số Lượng: {{ row.Qty }} Cây</li>
+                    <li class="mx-4">Khối Lượng: {{ row.Weight }} kg</li>
+                    <li class="mx-4">Tạo bởi: {{ row.Creator }}, ngày {{ row.Created_Time|date:'d-m-Y' }} lúc {{ row.Created_Time|date:'H:i:s' }}</li>
+                    <hr>
+                    <p class ="fs-5 text-primary">Lưu Ý: Tất Cả Giao Dịch Chuyển Đi Từ Lô Hàng Này Về Sau Cũng Sẽ Bị Xóa.</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form }}
+                    <input class="btn btn-danger" type="submit" value="Đúng, tôi chắc chắn">
+                    <a class="btn btn-secondary mx-3" href="{{ request.META.HTTP_REFERER }}">Hủy</a>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

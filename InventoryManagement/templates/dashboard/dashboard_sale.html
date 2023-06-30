@@ -1,0 +1,496 @@
+{% extends 'CoreParts/base_2.html' %}
+{% load static %}
+{% block title %} {{ title }} {% endblock %}
+{% block heading %}
+    <h1 class="fw-bold text-red mx-5 mb-1 text-center">Biểu Đồ Bán Hàng</h1>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+
+    <div class="row mb-3" style="">
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_01" width="500" height="500"></canvas>
+            <p id="total-sales" class="fw-bold"></p>
+        </div>
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_02" width="500" height="500"></canvas>
+            <p id="total-debt" class="fw-bold"></p>
+        </div>
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_03" width="500" height="500"></canvas>
+            <p id="total-pay" class="fw-bold"></p>
+        </div>
+        <div class="col-md-3 border border-3">
+            <h3 class="mt-2 text-center fw-bold fs-3 text-info">Thông Số Hàng Trả {{year}}</h3>
+            <div class="row">
+                <div id="returned-ratio-card" class="card col-md-5 ms-3 mt-4">
+                    <div class="card-body">
+                        <div class="card-title text-center text-white">% Trả Hàng (theo KL)</div>
+                        <hr style="color:white">
+                        <div id="returned-ratio" class="card-text text-center text-white fs-3 fw-bold mt-5"></div>
+                    </div>
+                </div>
+                <div class="card col-md-5 ms-3 mt-4 bg-warning">
+                    <div class="card-body">
+                        <div class="card-title text-center text-white">Hàng Trả:</div>
+                        <hr style="color:white">
+                        <div id="pc-raw" class="card-text text-center text-white fw-bold"></div>
+                        <div id="pc-dye" class="card-text text-center text-white fw-bold mt-1"></div>
+                        <div id="pc-print" class="card-text text-center text-white fw-bold mt-1"></div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_04" width="500" height="500"></canvas>
+        </div>
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_05" width="500" height="500"></canvas>
+            <p id="SW" class="fw-bold"></p>
+        </div>
+        <div class="col-md-3 border border-3">
+            <canvas id="Chart_06" width="500" height="500"></canvas>
+        </div>
+        <div class="col-md-3 border border-3">
+            BLANK
+        </div>
+    </div>
+</div>
+    {% endblock %}
+
+
+    {% block more_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="{% static 'assets/js/compare-dataset.js' %}"></script>
+    <!-- Charts and calculations with AJAX -->
+<script>
+Chart.register(ChartDataLabels);
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx_01 = document.getElementById('Chart_01').getContext('2d');
+    var ctx_02 = document.getElementById('Chart_02').getContext('2d');
+    var ctx_03 = document.getElementById('Chart_03').getContext('2d');
+    var ctx_04 = document.getElementById('Chart_04').getContext('2d');
+    var ctx_05 = document.getElementById('Chart_05').getContext('2d');
+    var ctx_06 = document.getElementById('Chart_06').getContext('2d');
+//Chart01 configs
+    var myChart_01 = new Chart(ctx_01, {
+        type: 'pie',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Số Tiền',
+                data: [],
+                backgroundColor: ['rgba(236, 111, 80, 1)',
+                                  'rgba(200, 222, 132, 1)',
+                                  'rgba(54, 162, 235, 1)',
+                                  'rgba(153, 102, 255, 1)',
+                                  'rgba(0, 111, 37, 0.8)',
+                                  'rgba(0, 0, 0, 0.5)'
+                                 ],
+                borderColor:  '#fff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: '{{ C1_name }}',
+                    font: { size: 16 }
+                },
+                datalabels: {
+                        formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(1);
+                            return percentage > 5 ? percentage + '%' : null;
+                        },
+                        color: '#fff',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: 10
+                }
+            },
+        }
+
+    });
+
+//Chart02 configs
+    var myChart_02 = new Chart(ctx_02, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Số Tiền',
+                data: [],
+                backgroundColor: ['rgba(236, 111, 80, 0.65)',
+                                 ],
+                borderColor: 'rgba(236, 111, 80, 1)',
+                borderWidth: 1.5
+            },
+
+            ]
+        },
+        options: {
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        callback: function (value, index, values) {
+          if (value >= 1000000000|| value <=-1000000000) {
+            return (value / 1000000000) + ' Tỷ';
+          }
+          if (value >= 1000000|| value <=-1000000) {
+            return (value / 1000000) + ' Triệu';
+          }
+          return value;
+        }
+      }
+    }
+  },
+  plugins: {
+    title: {
+      display: true,
+      text: '{{ C2_name }}',
+      font: { size: 16 }
+    },
+    datalabels: {
+       formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(0);
+                            return percentage + '%';
+                        },
+                        color: 'rgba(0,0,0,1)',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: -18
+    }
+  }
+}
+});
+
+//Chart03 configs
+    var myChart_03 = new Chart(ctx_03, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Số Tiền',
+                data: [],
+                backgroundColor: ['rgba(0, 111, 37, 0.65)',
+                                 ],
+                borderColor: 'rgba(0, 111, 37, 1)',
+                borderWidth: 1.5
+            },
+
+            ]
+        },
+        options: {
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        callback: function (value, index, values) {
+          if (value >= 1000000000|| value <=-1000000000) {
+            return (value / 1000000000) + ' Tỷ';
+          }
+          if (value >= 1000000|| value <=-1000000) {
+            return (value / 1000000) + ' Triệu';
+          }
+          return value;
+        }
+      }
+    }
+  },
+  plugins: {
+    title: {
+      display: true,
+      text: '{{ C3_name }}',
+      font: { size: 16 }
+    },
+    datalabels: {
+       formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(0);
+                            return percentage + '%';
+                        },
+                        color: 'rgba(0,0,0,1)',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: -18
+    }
+  }
+}
+});
+
+//Chart_04 configs
+    var myChart_04 = new Chart(ctx_04, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Số Tiền',
+                data: [],
+                backgroundColor: ['rgba(0, 111, 37, 1)',
+                                 ],
+                borderColor: 'rgba(0, 111, 37, 1)',
+                borderWidth: 3
+            },
+
+            ]
+        },
+            options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function (value, index, values) {
+              if (value >= 1000000000|| value <=-1000000000) {
+                return (value / 1000000000) + ' Tỷ';
+              }
+              if (value >= 1000000|| value <=-1000000) {
+                return (value / 1000000) + ' Triệu';
+              }
+              return value;
+            }
+          }
+        }
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: '{{ C4_name }}',
+          font: { size: 16 }
+        },
+        datalabels: {
+          display: false,
+        }
+      }
+    }
+    });
+
+//Chart_05 configs
+var myChart_05 = new Chart(ctx_05, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Khối Lượng',
+                    data: [],
+                    backgroundColor: ['rgba(236, 111, 80, 1)',
+                                      'rgba(0, 111, 37, 1)',
+                                      'rgba(54, 162, 235, 1)',
+                                      'rgba(255, 99, 132, 1)',
+                                      'rgba(153, 102, 255, 1)',
+                                      'rgba(0, 0, 0, 0.5)'
+                                     ],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                cutout: '50%',
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '{{ C5_name }}',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    datalabels: {
+                        formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(1);
+                            return percentage + '%';
+                        },
+                        color: '#fff',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: 10
+                    }
+                }
+            }
+        });
+
+//Chart_06 configs
+var myChart_06 = new Chart(ctx_06, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Khối Lượng',
+                data: [],
+                backgroundColor: ['rgba(139, 23, 101, 0.65)',
+                                 ],
+                borderColor: 'rgba(139, 23, 101, 1)',
+                borderWidth: 1.5
+            },
+
+            ]
+        },
+        options: {
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        callback: function (value, index, values) {
+          if (value >= 1000|| value <=-1000) {
+            return (value / 1000) + ' Tấn';
+          }
+          return value;
+        }
+      }
+    }
+  },
+  plugins: {
+    title: {
+      display: true,
+      text: '{{ C6_name }}',
+      font: { size: 16 }
+    },
+    datalabels: {
+       formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(0);
+                            return percentage + '%';
+                        },
+                        color: 'rgba(0,0,0,1)',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: -18
+    }
+  }
+}
+});
+
+    function updateChart() {
+        $.ajax({
+            url: '/dashboard/sale/live/',
+            method: 'GET',
+            success: function(response) {
+                myChart_01.data.labels = response.C1_labels_qs1;
+                myChart_01.data.datasets[0].data = response.C1_values_qs1;
+                myChart_01.update();
+
+                myChart_02.data.labels = response.C2_labels_qs1;
+                myChart_02.data.datasets[0].data = response.C2_values_qs1;
+                myChart_02.update();
+
+                myChart_03.data.labels = response.C3_labels_qs1;
+                myChart_03.data.datasets[0].data = response.C3_values_qs1;
+                myChart_03.update();
+
+                myChart_04.data.labels = response.C4_labels_qs1;
+                myChart_04.data.datasets[0].data = response.C4_values_qs1;
+                myChart_04.update();
+
+                myChart_05.data.labels = response.C5_labels_qs1;
+                myChart_05.data.datasets[0].data = response.C5_values_qs1;
+                myChart_05.update();
+
+                myChart_06.data.labels = response.C6_labels_qs1;
+                myChart_06.data.datasets[0].data = response.C6_values_qs1;
+                myChart_06.update();
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    }
+    updateChart();
+    setInterval(updateChart, 5000);
+});
+</script>
+<script>
+  function updateReturnedRatio() {
+    $.ajax({
+      url: '/dashboard/sale/live/',
+      type: 'GET',
+      dataType: 'json',
+      success: function(response) {
+// returned_ratio update
+        var returnedRatioDiv = $('#returned-ratio');
+        returnedRatioDiv.text(response.returned_ratio + '%');
+        var card_div = $('#returned-ratio-card');
+        var returnedRatio = parseFloat(response.returned_ratio);
+          if (returnedRatio < response.limit) {
+          card_div.removeClass('bg-danger').addClass('bg-success');
+        } else if (returnedRatio >= response.limit) {
+          card_div.removeClass('bg-success').addClass('bg-danger');
+        }
+// total_sales
+        var TotalSalesDiv = $('#total-sales');
+        var sales = response.total_sales.Amount__sum;
+        var formatted_sales = new Intl.NumberFormat().format(sales)
+        TotalSalesDiv.text('Tổng Mua: ' + formatted_sales + ' VNĐ' );
+// total_debt
+        var TotalDebtDiv = $('#total-debt');
+        var debt = response.total_debt.Amount__sum;
+        var formatted_debt = new Intl.NumberFormat().format(debt)
+        TotalDebtDiv.text('Tổng Nợ: ' + formatted_debt + ' VNĐ' );
+// total_pay
+        var TotalPayDiv = $('#total-pay');
+        var pay = response.total_pay.Amount__sum;
+        var formatted_pay = new Intl.NumberFormat().format(pay)
+        TotalPayDiv.text('Tổng Trả: ' + formatted_pay + ' VNĐ' );
+// % returned_detailed
+        var M_ratio_Div = $('#pc-raw');
+        var N_ratio_Div = $('#pc-dye');
+        var I_ratio_Div = $('#pc-print');
+        M_ratio_Div.text('Mộc: ' + response.M_pc + '%');
+        N_ratio_Div.text('Nhuộm: ' + response.N_pc + '%');
+        I_ratio_Div.text('In: ' + response.I_pc + '%');
+// Sale Weight, Sale Net Weight
+        var SW_Div = $('#SW');
+        var sale_weight = response.Sale_Weight.Tt_Weight;
+        var sale_weight_f = new Intl.NumberFormat().format(sale_weight);
+        var sale_net_weight = response.Sale_Weight.Tt_Weight;
+        var sale_net_weight_f = new Intl.NumberFormat().format(sale_net_weight);
+        SW_Div.text('KL Bán: ' + sale_weight_f + ' kg ' + '(' + sale_net_weight_f + ' kg' + ')');
+
+      },
+      error: function(xhr, status, error) {
+        console.error('AJAX Error:', status, error);
+      }
+    });
+  }
+
+  $(document).ready(function() {
+    updateReturnedRatio();
+    setInterval(updateReturnedRatio, 5000);
+  });
+</script>
+{% endblock %}

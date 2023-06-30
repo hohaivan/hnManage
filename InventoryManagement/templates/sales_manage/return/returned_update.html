@@ -1,0 +1,89 @@
+{% extends 'CoreParts/base.html' %}
+{% load static %}
+{% block title %} Sửa: Hàng Trả {% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% now 'Y' as current_year %}
+<div class="container">
+    <div class="row mt-1 p-3">
+        <div class="col-md-8 offset-md-2">
+            <p class="border border-5 rounded-pill rounded-5 fs-4 fw-bold p-2 mx-5 text-center text-primary">Sửa:
+                Hàng Khách Trả</p>
+            {% for message in messages %}
+            {% if message %}
+            <hr>
+            <div class="rounded-pill rounded-3 p-1 mx-5 alert alert-{{ message.tags }}">
+                <p class="text-center fs-5">{{ message }}</p>
+            </div>
+            {% endif %}
+            {% endfor %}
+
+
+            <hr>
+            <div class="row border border-success border-5">
+                <form id="my-form" class="mt-3" method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-3"> {{ form.Date|as_crispy_field }} </div>
+                        {% if user.is_superuser %}
+                        <div class="col-md-6"> {{ form.Note|as_crispy_field }} </div>
+                        <div class="col-md-3"> {{ form.Creator|as_crispy_field }} </div>
+                        {% else %}
+                        <div class="col-md-9"> {{ form.Note|as_crispy_field }} </div>
+                        {% endif %}
+                        <div class="col-md-4"> {{ form.Customer|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.Product_Name|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.Product_Type|as_crispy_field }} </div>
+                        <div class="col-md-2"> {{ form.Final_Product|as_crispy_field }} </div>
+                        <div class="col-md-5"> {{ form.Colours|as_crispy_field }} </div>
+                        <div class="col-md-5"> {{ form.Patterns|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.Qty|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.Weight|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.Cut|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.Price|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.Net|as_crispy_field }} </div>
+                        <div class="col-md-4"> {{ form.PayAmount|as_crispy_field }} </div>
+                        <div class="col-md-2"><input class="mb-3 px-5 btn btn-success btn-block" type="submit"
+                                                     value="Lưu"></div>
+                        <div class="col-md-3 ms-3"><a class="px-auto btn btn-danger btn-block"
+                                                      href="{% url 'returned_hn' year=current_year %}">Quay Lại</a></div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  // Get references to the Weight, Price, and PayAmount fields
+  const weightField = document.querySelector('#id_Weight');
+  const cutField = document.querySelector('#id_Cut');
+  const priceField = document.querySelector('#id_Price');
+  const netField = document.querySelector('#id_Net');
+  const payAmountField = document.querySelector('#id_PayAmount');
+
+  // Add event listeners
+  weightField.addEventListener('input', calculations);
+  priceField.addEventListener('input', calculations);
+  cutField.addEventListener('input', calculations);
+  window.addEventListener('DOMContentLoaded', calculations);
+
+  function calculations() {
+    // Get the values of the Weight and Price fields
+    const weight = parseFloat(weightField.value);
+    const price = parseFloat(priceField.value);
+    const cut = parseFloat(cutField.value);
+
+    // Calculate and format with thousand separators
+    const net = weight-cut;
+    const payAmount = net * price;
+    const formattedNet = net.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    const formattedPayAmount = payAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+
+    // Set the value to the formatted value
+    netField.value = formattedNet;
+    payAmountField.value = formattedPayAmount;
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,499 @@
+{% extends 'CoreParts/base_2.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %} {{ title }} {% endblock %}
+{% block heading %}
+<h1 class="fw-bold text-red mx-5 mb-1 text-center">Biểu Đồ Xuất Nhập Sợi</h1>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <form method="GET" action="{% url 'dashboard_procure' %}">
+        <div class="row mb-3">
+            <div class="col-md-3 border border-3">
+                <canvas id="Chart_21" width="500" height="500"></canvas>
+            </div>
+            <div class="col-md-3 border border-3">
+                <canvas id="Chart_22" width="500" height="500"></canvas>
+            </div>
+            <div class="col-md-3 border border-3">
+                <canvas id="Chart_23" width="500" height="500"></canvas>
+            </div>
+            <div class="col-md-3 border border-3">
+                <h3 class="text-center text-info fw-bold">Giao Sợi & Công Nợ {{ year }}</h3>
+                <div class="row mt-2">
+                    <div class="col-md-10 offset-md-1 fw-bold border border-success rounded-4">
+                        <p class="text-center fs-5 mb-0">Công Nợ Sợi Năm Trước</p>
+                        <hr class="mb-0 mt-0">
+                        <p id="Tt_Debt_LY" class="text-center text-red fs-5"></p>
+                    </div>
+                    <div class="col-md-10 offset-md-1 fw-bold border border-success rounded-4 mt-1">
+                        <p class="text-center fs-5 mb-0">Tổng Tiền Sợi Đã Giao</p>
+                        <hr class="mb-0 mt-0">
+                        <p id="Tt_Amount_Delivery" class="text-center text-red fs-5"></p>
+                    </div>
+                    <div class="col-md-10 offset-md-1 fw-bold border border-success rounded-4 mt-1">
+                        <p class="text-center fs-5 mb-0">Tổng Tiền Đã Trả</p>
+                        <hr class="mb-0 mt-0">
+                        <p id="Tt_Amount_Pay" class="text-center text-red fs-5"></p>
+                    </div>
+                    <div class="col-md-10 offset-md-1 fw-bold border border-success rounded-4 mt-1">
+                        <p class="text-center fs-5 mb-0">Tổng Công Nợ Sợi</p>
+                        <hr class="mb-0 mt-0">
+                        <p id="Tt_Debt" class="text-center text-red fs-5"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 border border-3">
+                <canvas id="Chart_24" width="500" height="500"></canvas>
+            </div>
+            <div class="col-md-3 border border-3">
+                <canvas id="Chart_25" width="500" height="500"></canvas>
+            </div>
+            <div class="col-md-3 border border-3">
+                <h3 class="text-center text-info fw-bold">Đơn Giá Sợi {{ year }}</h3>
+                <!-- form Vendor -->
+                <div class="col-md-12 mt-1 border border-info rounded-3 p-1">
+
+                    <label class="text-success fw-bold mt-2 ms-3" for="WH-selection">Tên Người Bán:</label>
+                    <select id="VD-selection" name="VD-selection" class="px-1 py-1">
+                        <option>Tất Cả</option>
+                        {% for option in VD_options %}
+                        <option {% if option == VD_name %} selected {% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="ms-3 btn btn-sm btn-danger" type="submit">Tìm</button>
+
+                </div>
+                <div class="col-md-11 my-2 mx-3 table-responsive" style="max-height:35vh; overflow-y:auto">
+                    <h5 class="text-center text-danger">Người Bán:{{ VD_name|default:'' }}</h5>
+                    <table class="table table-striped border table-sm table-responsive me-5">
+                        <thead class="bg-success">
+                        <tr>
+                            <th scope="col" class="text-white text-center">Loại Sợi</th>
+                            <th scope="col" class="text-white text-center">Giá TB</th>
+                            <th scope="col" class="text-white text-center">Thấp Nhất</th>
+                            <th scope="col" class="text-white text-center">Cao Nhất</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in Delivery_Price %}
+                        <tr>
+                            <td class="text-center">{{ item.OrderID__YarnType__Name }}</td>
+                            <td class="text-center">{{ item.avg_price|intcomma }}</td>
+                            <td class="text-center">{{ item.min_price|intcomma }}</td>
+                            <td class="text-center">{{ item.max_price|intcomma }}</td>
+
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-3 border border-3">
+                <h3 class="text-center text-info fw-bold">Xuất Nhập Sợi {{ year }} (KL:kg)</h3>
+                <!-- form Warehouse -->
+                <div class="col-md-12 mt-1 border border-info rounded-3 p-1">
+                    <label class="text-success fw-bold mt-2 ms-3" for="WH-selection">Tên Kho Sợi:</label>
+                    <select id="WH-selection" name="WH-selection" class="px-1 py-1">
+                        {% for option in WH_options %}
+                        <option {% if option == WH_name %} selected {% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="ms-3 btn btn-sm btn-danger" type="submit">Tìm</button>
+
+                </div>
+                <div class="row mt-1">
+                    <h5 class="text-center text-danger">Kho:{{ WH_name|default:'' }}</h5>
+                    <div class="col-md-11 my-2 mx-3 table-responsive" style="max-height:35vh; overflow-y:auto">
+                        <table class="table table-striped border table-sm table-responsive me-5">
+                            <thead class="bg-success">
+                            <tr>
+                                <th scope="col" class="text-white text-center">Loại Sợi</th>
+                                <th scope="col" class="text-white text-center">Nhập</th>
+                                <th scope="col" class="text-white text-center">Xuất</th>
+                                <th scope="col" class="text-white text-center">Còn Lại</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in Yarn_In_Out %}
+                            <tr>
+                                <td class="text-center">{{ item.YarnType__Name }}</td>
+                                <td class="text-center">{{ item.Tt_Weight_In|intcomma }}</td>
+                                <td class="text-center">{{ item.Tt_Weight_Out|intcomma }}</td>
+                                <td class="text-center">{{ item.WIO|intcomma }}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block more_scripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="{% static 'assets/js/compare-dataset.js' %}"></script>
+<!-- Charts and calculations with AJAX -->
+<script>
+Chart.register(ChartDataLabels);
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx_21 = document.getElementById('Chart_21').getContext('2d');
+    var ctx_22 = document.getElementById('Chart_22').getContext('2d');
+    var ctx_23 = document.getElementById('Chart_23').getContext('2d');
+    var ctx_24 = document.getElementById('Chart_24').getContext('2d');
+    var ctx_25 = document.getElementById('Chart_25').getContext('2d');
+//Chart_21 configs
+var myChart_21 = new Chart(ctx_21, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Khối Lượng',
+                data: [],
+                backgroundColor: ['rgba(239, 23, 101, 0.5)',
+                                 ],
+                borderColor: 'rgba(239, 23, 101, 1)',
+                borderWidth: 1.5
+            },
+
+            ]
+        },
+        options: {
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        callback: function (value, index, values) {
+          if (value >= 1000|| value <=-1000) {
+            return (value / 1000) + ' Tấn';
+          }
+          return value;
+        }
+      }
+    }
+  },
+  plugins: {
+    title: {
+      display: true,
+      text: '{{ C21_name }}',
+      font: { size: 16 }
+    },
+    datalabels: {
+       formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(1);
+                            return percentage + '%';
+                        },
+                        color: 'rgba(0,0,0,1)',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: -18
+    }
+  }
+}
+});
+//Chart_22 configs
+var myChart_22 = new Chart(ctx_22, {
+        type: 'doughnut',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Khối Lượng',
+                data: [],
+                backgroundColor: ['rgba(0, 0, 255, 0.5)',
+                                  'rgba(255, 0, 0, 0.5)',
+                                  'rgba(0, 255, 0, 0.5)',
+                                  'rgba(255, 255, 0, 0.5)',
+                                  'rgba(0, 0, 0, 0.5)',
+                                 ],
+                borderColor: '#fff',
+                borderWidth: 1
+            },
+
+            ]
+        },
+        options: {
+
+  plugins: {
+    title: {
+      display: true,
+      text: '{{ C22_name }}',
+      font: { size: 16 }
+    },
+    datalabels: {
+       formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(1);
+                            return percentage + '%';
+                        },
+                        color: '#fff',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: 10
+    }
+  }
+}
+});
+//Chart_23 configs
+var myChart_23 = new Chart(ctx_23, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Số Tiền',
+                data: [],
+                backgroundColor: ['rgba(88, 232, 70, 0.5)',
+                                 ],
+                borderColor: 'rgba(88, 232, 70, 1)',
+                borderWidth: 1.5
+            },
+
+            ]
+        },
+        options: {
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        callback: function (value, index, values) {
+          if (value >= 1000000000|| value <=-1000000000) {
+            return (value / 1000000000) + ' Tỷ';
+          }
+          if (value >= 1000000|| value <=-1000000) {
+            return (value / 1000000) + ' Triệu';
+          }
+          return value;
+        }
+      }
+    }
+  },
+  plugins: {
+    title: {
+      display: true,
+      text: '{{ C23_name }}',
+      font: { size: 16 }
+    },
+    datalabels: {
+       formatter: function(value, context) {
+                            var dataset = context.dataset;
+                            var sum = dataset.data.reduce(function(total, num) {
+                                return total + num;
+                            });
+                            var percentage = (value * 100 / sum).toFixed(1);
+                            return percentage + '%';
+                        },
+                        color: 'rgba(0,0,0,1)',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: -18
+    }
+  }
+}
+});
+//Chart_24 configs
+var myChart_24 = new Chart(ctx_24, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'KL Sợi Nhập',
+                data: [],
+                backgroundColor: ['rgba(14, 211, 255, 0.5)',
+                                 ],
+                borderColor: 'rgba(14, 211, 255, 1)',
+                borderWidth: 1.5
+            },
+            {
+                label: 'KL Sản Xuất',
+                data: [],
+                backgroundColor: ['rgba(255, 192, 0, 0.5)',
+                                 ],
+                borderColor: 'rgba(255, 192, 0, 1)',
+                borderWidth: 1.5
+            },
+
+
+            ]
+        },
+        options: {
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        callback: function (value, index, values) {
+          if (value >= 1000|| value <=-1000) {
+            return (value / 1000) + ' Tấn';
+          }
+          return value;
+        }
+      }
+    }
+  },
+  plugins: {
+    title: {
+      display: true,
+      text: '{{ C24_name }}',
+      font: { size: 16 }
+    },
+    datalabels: {
+       formatter: function(value, context) {
+                            if (value < 10000){
+                            return value }
+                            else {
+                            return null };
+                        },
+                        color: 'rgba(0,0,0,1)',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'start',
+                        offset: -18
+    }
+  }
+}
+});
+//Chart_25 configs
+    var myChart_25 = new Chart(ctx_25, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Số Tiền',
+                data: [],
+                backgroundColor: ['rgba(18, 158, 37, 1)',
+                                 ],
+                borderColor: 'rgba(18, 158, 37, 1)',
+                borderWidth: 3
+            },
+
+            ]
+        },
+            options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+        callback: function (value, index, values) {
+          if (value >= 1000000000|| value <=-1000000000) {
+            return (value / 1000000000) + ' Tỷ';
+          }
+          if (value >= 1000000|| value <=-1000000) {
+            return (value / 1000000) + ' Triệu';
+          }
+          return value;
+        }
+      }
+        }
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: '{{ C25_name }}',
+          font: { size: 16 }
+        },
+        datalabels: {
+          display: false,
+        }
+      }
+    }
+});
+
+    function updateChart() {
+        $.ajax({
+            url: '/dashboard/procurement/live/',
+            method: 'GET',
+            success: function(response) {
+                myChart_21.data.labels = response.C21_labels_qs1;
+                myChart_21.data.datasets[0].data = response.C21_values_qs1;
+                myChart_21.update();
+
+                myChart_22.data.labels = response.C22_labels_qs1;
+                myChart_22.data.datasets[0].data = response.C22_values_qs1;
+                myChart_22.update();
+
+                myChart_23.data.labels = response.C23_labels_qs1;
+                myChart_23.data.datasets[0].data = response.C23_values_qs1;
+                myChart_23.update();
+
+                myChart_24.data.labels = response.C24_labels_qs1;
+                myChart_24.data.datasets[0].data = response.C24_values_qs1;
+                myChart_24.data.datasets[1].data = response.C24_values_qs2;
+                myChart_24.update();
+
+                myChart_25.data.labels = response.C25_labels_qs1;
+                myChart_25.data.datasets[0].data = response.C25_values_qs1;
+                myChart_25.update();
+
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    }
+    updateChart();
+    setInterval(updateChart, 5000);
+});
+
+</script>
+<script>
+function update() {
+    $.ajax({
+      url: '/dashboard/procurement/live/',
+      type: 'GET',
+      dataType: 'json',
+      success: function(response) {
+// Tổng Tiền Sợi Đã Giao
+    var Delivery_Amount_Div = $('#Tt_Amount_Delivery');
+    var Delivery_Amount = response.Tt_Delivery_Amount.PayValue__sum;
+    var Delivery_Amount_f = new Intl.NumberFormat().format(Delivery_Amount);
+    Delivery_Amount_Div.text(Delivery_Amount_f + ' VNĐ');
+// Tổng Công Nợ Sợi
+    var Tt_Debt_Div = $('#Tt_Debt');
+    var Debt_Amount = response.Tt_Debt.Debt__sum;
+    var Debt_Amount_f = new Intl.NumberFormat().format(Debt_Amount);
+    Tt_Debt_Div.text(Debt_Amount_f + ' VNĐ');
+// Tổng Công Nợ Sợi Cũ
+    var Tt_DebtLY_Div = $('#Tt_Debt_LY');
+    var DebtLY_Amount = response.Tt_Debt_LY.Debt_LY__sum;
+    var DebtLY_Amount_f = new Intl.NumberFormat().format(DebtLY_Amount);
+    Tt_DebtLY_Div.text(DebtLY_Amount_f + ' VNĐ');
+// Tổng Trả
+    var Tt_Pay_Div = $('#Tt_Amount_Pay');
+    var Pay_Amount = response.Tt_Pay.Pay__sum;
+    var Pay_Amount_f = new Intl.NumberFormat().format(Pay_Amount);
+    Tt_Pay_Div.text(Pay_Amount_f + ' VNĐ');
+
+      },
+      error: function(xhr, status, error) {
+        console.error('AJAX Error:', status, error);
+      }
+    });
+  }
+
+  $(document).ready(function() {
+    update();
+    setInterval(update, 5000);
+  });
+
+</script>
+{% endblock %}

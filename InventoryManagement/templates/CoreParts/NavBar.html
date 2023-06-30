@@ -1,0 +1,154 @@
+{% load static %}
+{% url 'admin:index' as admin_url %}
+{% now 'Y' as current_year %}
+
+<div class="header">
+    <div class="header-left">
+        <a href="{% url 'main_page' %}" class="logo">
+            <img src="{% static 'assets/img/logo.png' %}" alt="">
+        </a>
+        <a href="{% url 'main_page' %}" class="logo-small">
+            <img src="{% static 'assets/img/logo-small.png' %}" alt="">
+        </a>
+        <a id="toggle_btn" href="javascript:void(0);"></a>
+    </div>
+
+    <a id="mobile_btn" class="mobile_btn" href="#sidebar">
+        <span class="bar-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+        </span>
+    </a>
+
+    <ul class="nav user-menu">
+        <li class="nav-item">
+            <div class="fs-5 fw-bold me-0 px-2">
+                <p class="mb-0">Date: <span class="text-primary" id="clock-date"></span> </p>
+                <p class="mb-0">Time: <span class="text-primary" id="clock"></span> </p>
+            </div>
+        </li>
+        {% if user.is_superuser %}
+        <li class="nav-item">
+            <div class="container">
+
+                <a class = "btn btn-success rounded-pill round-5 mt-2" href="{{ admin_url }}">Admin Site</a>
+            </div>
+
+        </li>
+        {% endif %}
+
+
+        <!-- user status/logout/changepass-->
+        <li class="nav-item dropdown has-arrow main-drop">
+            <a href="javascript:void(0);" class="dropdown-toggle nav-link userset" data-bs-toggle="dropdown">
+                <span class="user-img"><img src="{% static 'assets/img/profiles/avator1.jpg' %}" alt="">
+                <span class="status online"></span></span>
+            </a>
+            <div class="dropdown-menu menu-drop-user">
+                <div class="profilename">
+                    <div class="profileset">
+                <span class="user-img"><img src="{% static 'assets/img/profiles/avator1.jpg' %}" alt="">
+                <span class="status online"></span></span>
+                        <div class="profilesets">
+                            <h5 class="mt-2">{{ user }}</h5>
+                        </div>
+                    </div>
+                    <hr class="m-0">
+                    <a class="dropdown-item" href="profile.html"> <i class="me-2" data-feather="user"></i> Hồ Sơ Của Bạn</a>
+                    <a class="dropdown-item" href="{% url 'Change_Password' %}"><i class="me-2" data-feather="settings"></i>Đổi Mật Khẩu</a>
+                    <hr class="m-0">
+                    <a class="dropdown-item logout pb-0" href="{% url 'user-logout' %}"><img src="{% static 'assets/img/icons/log-out.svg'%}" class="me-2" alt="img">Đăng Xuất</a>
+                </div>
+            </div>
+        </li>
+
+    </ul>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-inner slimscroll">
+        <div id="sidebar-menu" class="sidebar-menu">
+            <ul>
+                <li class="submenu">
+                    <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/dashboard.svg' %}" alt="img"><span> Dashboard Live</span><span class="menu-arrow"></span> </a>
+                    <ul>
+                        <li><a href="{% url 'dashboard_sale' %}" target="_blank" >Phân Tích Bán Hàng</a></li>
+                        <li><a href="{% url 'dashboard_production' %}" target="_blank" >Phân Tích Sản Xuất</a></li>
+                        <li><a href="{% url 'dashboard_procure' %}" target="_blank" >Phân Tích Xuất Nhập Sợi</a></li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/product.svg' %}" alt="img"><span> Quản Lý Sợi</span> <span class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="{% url 'yarn_order_hn' current_year %}" {% if nav == 'yarn_order' %} class = "active" {% endif %}>Đặt Sợi {{ current_year }}</a></li>
+                        <li><a href="{% url 'yarn_delivery_hn' current_year %}" {% if nav == 'yarn_delivery' %} class = "active" {% endif %}>Giao Sợi {{ current_year }}</a></li>
+                        <li><a href="{% url 'yarn_transfer_hn' current_year %}" {% if nav == 'yarn_transfer' %} class = "active" {% endif %}>Xuất Nhập Sợi {{ current_year }}</a></li>
+                        <li><a href="{% url 'yarn_pay_hn' current_year %}" {% if nav == 'yarn_pay' %} class = "active" {% endif %}>Trả Tiền Sợi {{ current_year }}</a></li>
+                        <li><a href="{% url 'yarn_debt' current_year %}" {% if nav == 'debt' %} class = "active" {% endif %}>Thống Kê Công Nợ {{ current_year }}</a></li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/sales1.svg' %}" alt="img"><span> Quản Lý Sản Xuất</span> <span class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="{% url 'Det_Tay_hn' current_year %}" {% if nav == 'weave-bleach' %} class="active" {% endif %}>Dệt - Tẩy {{ current_year }}</a></li>
+                        <li><a href="{% url 'Tay_Moc_hn' current_year %}" {% if nav == 'bleach-raw' %} class="active" {% endif %}>Tẩy - Mộc {{ current_year }}</a></li>
+                        <li><a href="{% url 'Tay_In_hn' current_year %}" {% if nav == 'bleach-print' %} class="active" {% endif %}>Tẩy - In {{ current_year }}</a></li>
+                        <li><a href="{% url 'Tay_Nhuom_hn' current_year %}" {% if nav == 'bleach-dye' %} class="active" {% endif %}>Tẩy - Nhuộm {{ current_year }} </a></li>
+                        <li><a href="{% url 'Cang_hn' current_year %}" {% if nav == 'Stretch' %} class="active" {% endif %}>Căng {{ current_year }}</a></li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/purchase1.svg' %}" alt="img"><span> Quản Lý Bán Hàng</span> <span class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="{% url 'sales_hn' current_year %}" {% if nav == 'sales' %} class="active" {% endif %} >Bán Hàng {{ current_year }}</a></li>
+                        <li><a href="{% url 'returned_hn' current_year %}" {% if nav == 'returned' %} class="active" {% endif %}>Hàng Trả {{ current_year }} </a></li>
+                        <li><a href="{% url 'Pay_hn' current_year %}"{% if nav == 'Customer_Pay' %} class="active" {% endif %}>Khách Hàng Trả Tiền {{ current_year }} </a></li>
+                        <li><a href="{% url 'Customer_Debt' current_year %}"{% if nav == 'Customer_Debt' %} class="active" {% endif %}>Thống Kê Công Nợ {{ current_year }} </a></li>
+                    </ul>
+                </li>
+                <li class="{% if nav == 'ledger' %} active {% endif %}">
+                    <a href="{% url 'ledger_view_hn' current_year %}"><img src="{% static 'assets/img/icons/transfer1.svg' %}" alt="img"><span> Thu-Chi {{ current_year }}</span></a>
+
+                </li>
+                <li class="submenu">
+                    <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/expense1.svg' %}" alt="img"><span> Dữ Liệu Khác</span> <span class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="{% url 'Customer_info' %}"{% if nav == 'Cus_inf' %} class="active" {% endif %}>Thông Tin Khách Hàng</a></li>
+                        <li><a href="{% url 'WH_OS_ALL' %}"{% if nav == 'wh_os' %} class="active" {% endif %}>Kho Hàng & Gia Công</a></li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/quotation1.svg' %}" alt="img"><span> Quotation</span> <span class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="quotationList.html">Quotation List</a></li>
+                        <li><a href="addquotation.html">Add Quotation</a></li>
+                    </ul>
+                </li>
+
+                <li class="submenu">
+                    <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/return1.svg' %}" alt="img"><span> Return</span> <span class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="salesreturnlist.html">Sales Return List</a></li>
+                        <li><a href="createsalesreturn.html">Add Sales Return </a></li>
+                        <li><a href="purchasereturnlist.html">Purchase Return List</a></li>
+                        <li><a href="createpurchasereturn.html">Add Purchase Return </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div><!--Additional Scripts-->
+<script>
+    document.querySelector('#id_DetTay_ID').setAttribute('data-redirect-url', '{% url 'Tay_Moc_add' pk=0 %}');
+</script>
+<script>
+    document.querySelector('#id_DetTay_ID').addEventListener('change', function() {
+        var redirectUrl = this.getAttribute('data-redirect-url');
+        if (redirectUrl) {
+            var value = this.value;
+            redirectUrl = redirectUrl.replace('0', encodeURIComponent(value));
+            window.location.href = redirectUrl;
+        }
+    });
+</script>
+    </div>
+</div>
